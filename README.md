@@ -1,76 +1,145 @@
-# Learn with Jiji — Backend API (VeidaLabs Hiring Assignment)
+# Learn with Jiji — Backend API
 
-## Overview
-
-This project implements a simple backend service for **Learn with Jiji — The AI Learning Companion**.
-It provides an API endpoint that accepts a user query, retrieves matching learning resources from Supabase, and returns a structured response with answer text and resource links.
-
-This implementation focuses on backend fundamentals, Supabase integration, API design, validation, and basic security practices.
+### VeidaLabs Software Developer Hiring Assignment
 
 ---
 
-## Tech Stack
+## 📌 Project Summary
 
-* Node.js
-* Express.js
-* Supabase
+This project implements a backend API for **Learn with Jiji — an AI Learning Companion**.
+The service accepts a user learning query, searches stored learning resources, and returns a structured response containing an answer and related materials (PPT + Video).
 
-  * Database
-  * Auth (enabled)
-  * Storage (PPT & Video links)
+The goal of this implementation is to demonstrate practical backend skills including:
+
+* API design
+* Supabase database usage
+* Authentication
+* Row Level Security (RLS)
+* Secure configuration
+* Clean project structure
+
+No real AI is used — responses are mocked from stored learning content as required by the assignment.
 
 ---
 
-## Features Implemented
+## ⚙️ Tech Stack
 
-* POST API endpoint to accept user query
+* **Node.js**
+* **Express.js**
+* **Supabase**
+
+  * PostgreSQL Database
+  * Authentication (Email/Password)
+  * Storage (learning resources)
+* dotenv (environment config)
+
+---
+
+## ✅ Features Implemented
+
+* User login using Supabase Auth
+* Protected API endpoint with Bearer token
 * Query validation
-* Resource lookup from Supabase database
-* Structured JSON response
-* Supabase Storage integration for PPT & Video links
-* Row Level Security (RLS) enabled
-* Environment variables used for secrets
-* Basic error handling
+* Learning resource search from Supabase DB
+* Structured JSON response for frontend
+* Query logging per user
+* Supabase Storage integration (PPT & Video links)
+* Row Level Security (RLS) policies
+* Secrets stored in environment variables
+* Modular, industry-style folder structure
+* Error handling for invalid requests
 
 ---
 
-## API Endpoint
+## 🧩 API Endpoints
 
-### POST `/ask-jiji`
+Base path: `/api`
 
-Accepts a learning query and returns answer + resources.
+---
 
-### Request Body
+### 🔐 POST `/api/login`
+
+Authenticates a user using Supabase Auth and returns an access token.
+
+#### Request Body
 
 ```json
 {
-  "query": "Explain RAG"
+  "email": "test@example.com",
+  "password": "test123456"
 }
 ```
 
-### Success Response
+#### Success Response
 
 ```json
 {
-  "answer": "RAG stands for Retrieval Augmented Generation...",
-  "resources": {
-    "ppt": "https://...",
-    "video": "https://..."
+  "access_token": "jwt-token-here",
+  "user": {
+    "id": "user-uuid",
+    "email": "test@example.com"
   }
 }
 ```
 
-### Error Response
+This token must be used in protected endpoints.
+
+---
+
+### 🤖 POST `/api/ask-jiji`
+
+Main learning query endpoint.
+Returns answer + key points + learning resources.
+
+**Authentication required**
+
+#### Headers
+
+```
+Authorization: Bearer <access_token>
+```
+
+#### Request Body
 
 ```json
 {
-  "error": "Invalid query"
+  "query": "RAG"
+}
+```
+
+#### Success Response
+
+```json
+{
+  "answer": "Retrieval Augmented Generation (RAG) enhances AI models by retrieving external knowledge before generating responses.",
+  "key_points": [
+    "Fetches external knowledge",
+    "Improves accuracy",
+    "Reduces hallucinations"
+  ],
+  "resources": {
+    "ppt": "https://storage-link",
+    "video": "https://video-link"
+  }
 }
 ```
 
 ---
 
-## Database Schema (Supabase)
+### ❤️ GET `/health`
+
+Health check endpoint.
+
+```json
+{
+  "status": "OK",
+  "message": "Jiji API is running"
+}
+```
+
+---
+
+## 🗄️ Database Schema (Supabase)
 
 ### profiles
 
@@ -79,20 +148,21 @@ Accepts a learning query and returns answer + resources.
 
 ### resources
 
-* id (uuid, primary key)
+* id (uuid)
 * topic (text)
 * answer (text)
+* key_points (text array)
 * ppt_url (text)
 * video_url (text)
 
 ### queries
 
-* id (uuid, primary key)
+* id (uuid)
 * user_id (uuid)
 * query (text)
 * created_at (timestamp)
 
-Schema SQL file is included in the repo as:
+Schema SQL is included in:
 
 ```
 schema.sql
@@ -100,59 +170,91 @@ schema.sql
 
 ---
 
-## Supabase Storage
+## 📦 Supabase Storage
 
-Bucket: `learning`
+Bucket name: `learning`
 
 Contains:
 
 * Sample PPT file
-* Sample video file (or placeholder)
+* Sample video file
 
-Public URLs are stored in the `resources` table.
-
----
-
-## Auth & Security
-
-* Supabase Auth is enabled (email auth)
-* Row Level Security (RLS) enabled on tables
-* Example policy: users can insert only their own queries
-* No secrets stored in source code
-* Supabase keys stored in `.env`
-* `.env` is excluded via `.gitignore`
+Public URLs are stored in the `resources` table and returned by the API.
 
 ---
 
-## How to Run Locally
+## 🔒 Auth & Security
 
-### 1. Clone repo
+* Supabase Email/Password Auth enabled
+* Bearer token required for protected routes
+* Row Level Security (RLS) enabled
+* Policies implemented:
+
+**queries table**
+
+* User can insert only their own queries
+
+**resources table**
+
+* Authenticated users can read resources
+
+**profiles table**
+
+* Users can read their own profile
+
+* No secrets in source code
+
+* `.env` used for Supabase keys
+
+* `.env` excluded via `.gitignore`
+
+---
+
+## 🧱 Project Structure
 
 ```
-git clone <your-repo-link>
+src/
+  config/        → Supabase client
+  controllers/   → Route logic
+  middleware/    → Auth middleware
+  routes/        → Express routes
+  services/      → DB operations
+  app.js         → Express app setup
+
+server.js        → Entry point
+```
+
+This structure keeps logic separated and maintainable.
+
+---
+
+## ▶️ How to Run Locally
+
+### 1️⃣ Clone the repository
+
+```
+git clone <repo-url>
 cd project-folder
 ```
 
-### 2. Install dependencies
+### 2️⃣ Install dependencies
 
 ```
 npm install
 ```
 
-### 3. Create environment file
-
-Create `.env`
+### 3️⃣ Create `.env`
 
 ```
-SUPABASE_URL=your_url
+SUPABASE_URL=your_project_url
 SUPABASE_KEY=your_anon_key
 PORT=3000
 ```
 
-### 4. Start server
+### 4️⃣ Start server
 
 ```
-node server.js
+npm start
 ```
 
 Server runs at:
@@ -163,12 +265,28 @@ http://localhost:3000
 
 ---
 
-## Testing the API
+## 🧪 Testing Flow (Postman)
 
-Use Postman or curl:
+### Step 1 — Login
 
 ```
-POST http://localhost:3000/ask-jiji
+POST /api/login
+```
+
+Copy access_token from response.
+
+---
+
+### Step 2 — Ask Jiji
+
+```
+POST /api/ask-jiji
+```
+
+Header:
+
+```
+Authorization: Bearer <token>
 ```
 
 Body:
@@ -181,26 +299,26 @@ Body:
 
 ---
 
-## Mock AI Behavior
+## 🧠 Mock AI Behavior
 
-This assignment uses mocked answer text stored in the database.
-No external AI or internet content is used, as per assignment requirements.
-
----
-
-## One Improvement With More Time
-
-With more time, I would add:
-
-* Semantic search using embeddings
-* Query logging + analytics
-* JWT-based user auth in API layer
-* Better topic matching with keyword scoring
-* Multiple resource ranking
+This project intentionally uses stored content instead of live AI calls.
+Responses are fetched from Supabase resources table to simulate AI output.
 
 ---
 
-## Author
+## 🚀 Possible Improvements (With More Time)
 
-Piyush Bhakre
+* Semantic search with embeddings
+* Vector similarity matching
+* Resource ranking
+* Query analytics dashboard
+* Rate limiting
+* Caching layer
+* API documentation with Swagger
+
+---
+
+## 👤 Author
+
+**Piyush Bhakre**
 VeidaLabs Software Developer Hiring Assignment

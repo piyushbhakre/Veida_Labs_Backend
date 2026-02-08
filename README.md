@@ -112,7 +112,7 @@ Authorization: Bearer <access_token>
 ```json
 {
   "answer": "Retrieval Augmented Generation (RAG) enhances AI models by retrieving external knowledge before generating responses.",
-  "key_points": [
+  "bullet_points": [
     "Fetches external knowledge",
     "Improves accuracy",
     "Reduces hallucinations"
